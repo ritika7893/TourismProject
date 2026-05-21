@@ -1,0 +1,76 @@
+/* =========================================================
+   Dashboard  — layout & card grid (scoped to .dashboard-layout)
+   Imported by: UserDashboard.jsx · AdminDashboard.jsx
+   ========================================================= */
+
+.dashboard-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-body {
+  flex: 1;
+  padding: 2rem;
+  background-color: #f5f7fa;
+}
+
+/* ── Role heading ── */
+.role-dashboard h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.75rem;
+  font-family: var(--heading, system-ui, sans-serif);
+  font-weight: 600;
+}
+.user-card h3 { color: #2e7d5f; }
+.admin-card h3 { color: #2563eb; }
+
+/* ── Card grid ── */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.dash-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.dash-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.10);
+}
+
+.dash-card h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.dash-card p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* ── Role card accents ── */
+.user-card  { border-left: 4px solid #2e7d5f; }
+.admin-card { border-left: 4px solid #2563eb; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .dashboard-body { padding: 1rem; }
+  .role-dashboard h2 { font-size: 1.25rem; }
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+  .dash-card { padding: 1.25rem; }
+}
+
+@media (max-width: 480px) {
+  .dashboard-body { padding: 0.75rem; }
+  .dash-card { padding: 1rem; }
+}

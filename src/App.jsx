@@ -4,7 +4,8 @@ import ProtectedRoute from './ProtectedRoute.jsx';
 import NavBar from './NavBar.jsx';
 import Home from './Home.jsx';
 import Login from './Login.jsx';
-import DashboardTopNav from './DashboardTopNav.jsx';
+import UserDashboard from './UserDashboard.jsx';
+import AdminDashboard from './AdminDashboard.jsx';
 
 // Helper component to handle conditional layout logic inside the Router context
 const AppContent = () => {
@@ -24,18 +25,15 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<DashboardTopNav />} />
         {/* <Route path="/dashboard" element={
           <ProtectedRoute>
-            <div className="dashboard-layout" style={{ marginTop: shouldHideNavBar() ? '0px' : '70px' }}>
-              <DashboardTopNav />
-              <div className="dashboard-content" style={{ padding: '2rem' }}>
-                <h1>Protected Dashboard</h1>
-                <p>Welcome, {user?.mobile_number}! This is a secure area.</p>
-              </div>
-            </div>
+            {user?.role === 'admin' ? <AdminDashboard /> : <UserDashboard />}
           </ProtectedRoute>
         } /> */}
+        <Route path="/AdminDashboard" element={<AdminDashboard />} />
+
+      <Route path="/UserDashboard" element={<UserDashboard />} />
+
       </Routes>
     </div>
   );
