@@ -1,0 +1,118 @@
+.quick-links-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: var(--primary-green);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.quick-links-toggle:hover {
+  background-color: var(--secondary-green);
+  transform: translateY(-2px);
+}
+
+.quick-links-menu {
+  position: fixed;
+  top: 0;
+  right: -300px; /* Hidden by default */
+  width: 300px;
+  height: 100%;
+  background-color: white;
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+  z-index: 1002;
+  transition: right 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  box-sizing: border-box; /* Include padding in width */
+}
+
+.quick-links-menu.active {
+  right: 0; /* Slide in */
+}
+
+.quick-links-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.quick-links-header h3 {
+  margin: 0;
+  color: var(--primary-green);
+  font-size: 1.2rem;
+}
+
+.close-menu-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--mountain-gray);
+  padding: 5px;
+}
+
+.close-menu-btn:hover {
+  color: var(--accent-orange);
+}
+
+.quick-links-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.quick-links-menu li {
+  margin-bottom: 8px;
+}
+
+.quick-links-menu a {
+  text-decoration: none;
+  color: #333;
+  font-size: 1rem;
+  padding: 10px 15px;
+  display: block;
+  transition: color 0.3s ease, background-color 0.3s ease;
+  border-radius: 5px;
+}
+
+.quick-links-menu a:hover {
+  color: var(--accent-orange);
+  background-color: #f8f8f8;
+}
+
+.quick-links-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+}
+
+@media (max-width: 768px) {
+  .quick-links-menu {
+    width: 250px;
+  }
+  .quick-links-toggle {
+    bottom: 15px;
+    right: 15px;
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+}
