@@ -5,13 +5,6 @@ import './Dashboard.css';
 const UserDashboard = () => {
   const { user } = useAuth();
 
-  /* Quick-links shown only on tablet / mobile (via CSS max-width queries) */
-  const quickLinks = [
-    { label: 'Adventures', icon: '🏔', className: 'ql-btn ql-user-adventures' },
-    { label: 'Stats',     icon: '📊', className: 'ql-btn ql-user-stats'     },
-    { label: 'Actions',   icon: '⚡', className: 'ql-btn ql-user-actions'   },
-  ];
-
   const cards = [
     { title: 'My Adventures', desc: 'Track your ongoing and completed adventures in one place.' },
     { title: 'Statistics',    desc: 'Review your personal stats, milestones, and recent activity.' },
@@ -21,16 +14,6 @@ const UserDashboard = () => {
   return (
     <div className="dashboard-layout">
       <DashboardTopNav variant="user" />
-
-      {/* ── Tablet & Mobile quick-links row ── */}
-      <nav className="topnav-quick-links" aria-label="Quick links">
-        {quickLinks.map((ql) => (
-          <a key={ql.label} href="#" className={ql.className}>
-            <span aria-hidden="true">{ql.icon}</span>
-            {ql.label}
-          </a>
-        ))}
-      </nav>
 
       <div className="dashboard-body">
         <div className="role-dashboard">

@@ -13,9 +13,12 @@ const AppContent = () => {
   const location = useLocation();
 
   // Function to determine if the main NavBar should be hidden (e.g., in Dashboard)
-  const shouldHideNavBar = () => {
-    return location.pathname.startsWith('/dashboard');
-  };
+   const shouldHideNavBar = () => {
+     return (
+       location.pathname === "/AdminDashboard" ||
+       location.pathname === "/UserDashboard"
+     );
+   };
 
   return (
     <div className="app-main-layout">

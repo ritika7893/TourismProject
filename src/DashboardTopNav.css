@@ -1,7 +1,9 @@
 /* =========================================================
-   DashboardTopNav  — role-scoped top bar (user / admin)
+   DashboardTopNav  — desktop inline nav + mobile/tablet drawer
+   role: user | admin  (className: user-topnav | admin-topnav)
    ========================================================= */
 
+/* ── Top bar ── */
 .dashboard-topnav {
   display: flex;
   align-items: center;
@@ -11,30 +13,30 @@
   background-color: #ffffff;
   border-bottom: 1px solid #e5e7eb;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 /* Brand */
 .topnav-brand h3 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-family: var(--heading, system-ui, sans-serif);
-  font-weight: 600;
+  font-weight: 700;
+  white-space: nowrap;
 }
 .user-topnav .topnav-brand h3 { color: #2e7d5f; }
 .admin-topnav .topnav-brand h3 { color: #2563eb; }
 
-/* ── Desktop inline nav links ── */
+/* ── Desktop inline nav ── */
 .topnav-links {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  flex: 1;
-  justify-content: center;
 }
-
 .topnav-link {
-  padding: 0.45rem 0.9rem;
+  padding: 0.5rem 1rem;
   border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
@@ -46,10 +48,10 @@
   background: #f3f4f6;
   color: #1f2937;
 }
-.user-topnav .topnav-link:hover { color: #2e7d5f; background: rgba(46, 125, 95, 0.08); }
-.admin-topnav .topnav-link:hover { color: #2563eb; background: rgba(37, 99, 235, 0.08); }
+.user-topnav .topnav-link:hover { color: #2e7d5f; background: rgba(46,125,95,0.08); }
+.admin-topnav .topnav-link:hover { color: #2563eb; background: rgba(37,99,235,0.08); }
 
-/* ── User info + logout ── */
+/* ── Right cluster: account + logout + hamburger ── */
 .topnav-user-info {
   display: flex;
   align-items: center;
@@ -60,6 +62,7 @@
   font-weight: 500;
   color: #6b7280;
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .dashboard-logout-btn {
@@ -76,90 +79,156 @@
 .dashboard-logout-btn:hover {
   background-color: #d9363e;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(217, 54, 62, 0.22);
+  box-shadow: 0 4px 8px rgba(217,54,62,0.22);
 }
 
+/* ── Hamburger button ── */
+.hamburger-btn {
+  display: none;                /* hidden on desktop */
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #374151;
+  transition: background 0.15s;
+}
+.hamburger-btn:hover { background: #f3f4f6; }
+
 /* =========================================================
-   Responsive — Tablet (≤ 768 px) & Mobile (≤ 480 px)
-   Users / Admins share the same quick-links layout
+   DRAWER  — side panel (tablet & mobile, ≤768px)
+   ========================================================= */
+.drawer-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 900;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.drawer-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  max-width: 85vw;
+  height: 100dvh;
+  background: #ffffff;
+  z-index: 950;
+  flex-direction: column;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+.drawer.is-open { transform: translateX(0); }
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.user-topnav .drawer-header { color: #2e7d5f; }
+.admin-topnav .drawer-header { color: #2563eb; }
+
+.drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: background 0.15s;
+}
+.drawer-close:hover { background: #f3f4f6; }
+
+.drawer-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+.drawer-link {
+  display: block;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: #374151;
+  transition: background 0.15s;
+}
+.drawer-link:hover { background: #f3f4f6; }
+
+.drawer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #e5e7eb;
+}
+.drawer-account-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+.drawer-logout-btn {
+  padding: 0.4rem 1rem;
+  background-color: #ff4d4f;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.drawer-logout-btn:hover { background-color: #d9363e; }
+
+/* =========================================================
+   RESPONSIVE — Tablet (≤768px) & Mobile (≤480px)
    ========================================================= */
 
 @media (max-width: 768px) {
-  .dashboard-topnav {
-    justify-content: center;
-    gap: 0.75rem;
-  }
-
-  /* Hide inline nav links; controlled by quick-links row below */
+  /* Hide inline desktop nav; hamburger replaces it */
   .topnav-links { display: none; }
 
-  /* ── Mobile / Tablet quick-links row ── */
-  .dashboard-topnav::after {
+  /* Hamburger + overlay|drawer become active */
+  .hamburger-btn         { display: flex; }
+  .drawer-overlay        { display: block; }
+  .drawer                { display: flex; }
+
+  /* Keep account label, hide word "Account"/"Admin" to save space */
+  .topnav-user-info .user-id::before {
     content: '';
-    display: flex;
-    width: 100%;
-    order: 3;
-    border-top: 1px solid #e5e7eb;
-    padding-top: 0.5rem;
-    margin-top: 0.25rem;
   }
 
-  /* Wrapper injected by JSX separator */
-  .topnav-quick-links {
-    order: 4;
-    display: flex;
-    width: 100%;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.25rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #e5e7eb;
-  }
-
-  .ql-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: opacity 0.15s, transform 0.15s;
-    white-space: nowrap;
-  }
-  .ql-btn:hover { opacity: 0.85; transform: scale(1.03); }
-
-  /* User quick-links */
-  .ql-user-adventures { background: #e8f5ee; color: #2e7d5f; }
-  .ql-user-stats     { background: #e8f5ee; color: #2e7d5f; }
-  .ql-user-actions   { background: #e8f5ee; color: #2e7d5f; }
-
-  /* Admin quick-links */
-  .ql-admin-users    { background: #dbeafe; color: #2563eb; }
-  .ql-admin-settings { background: #dbeafe; color: #2563eb; }
-  .ql-admin-reports  { background: #dbeafe; color: #2563eb; }
-
-  /* Reduce brand font size */
-  .topnav-brand h3 { font-size: 1.1rem; }
-
-  /* Shrink logout button */
-  .dashboard-logout-btn { padding: 0.35rem 0.85rem; font-size: 0.8rem; }
-
-  /* Hide account label prefix */
-  .user-id { font-size: 0.8rem; }
+  .dashboard-topnav { padding: 0.75rem 1rem; }
+  .topnav-brand h3 { font-size: 1.05rem; }
+  .dashboard-logout-btn { padding: 0.4rem 0.85rem; font-size: 0.8rem; }
 }
 
 @media (max-width: 480px) {
-  .dashboard-topnav { padding: 0.625rem 1rem; gap: 0.5rem; }
-  .topnav-brand h3 { font-size: 1rem; }
+  .dashboard-topnav { padding: 0.625rem 0.75rem; }
+  .topnav-brand h3 { font-size: 0.95rem; }
   .user-id { font-size: 0.75rem; }
-  .dashboard-logout-btn { padding: 0.3rem 0.7rem; font-size: 0.75rem; }
-
-  /* Stack quick-links into 2 rows on very small screens */
-  .topnav-quick-links {
-    flex-wrap: wrap;
-    gap: 0.375rem;
-  }
-  .ql-btn { font-size: 0.7rem; padding: 0.3rem 0.6rem; }
+  .dashboard-logout-btn { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
 }
