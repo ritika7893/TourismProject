@@ -6,6 +6,7 @@ import Home from './Home.jsx';
 import Login from './Login.jsx';
 import UserDashboard from './UserDashboard.jsx';
 import AdminDashboard from './AdminDashboard.jsx';
+import RegistrationForm from './RegistrationForm.jsx';
 
 // Helper component to handle conditional layout logic inside the Router context
 const AppContent = () => {
@@ -28,6 +29,7 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<RegistrationForm standalone={true} />} />
         {/* Redirect based on role after successful login to /dashboard */}
         <Route path="/dashboard" element={
           <ProtectedRoute>

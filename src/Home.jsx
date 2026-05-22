@@ -8,6 +8,12 @@ const Home = () => {
   const { user } = useAuth();
   const [userCount, setUserCount] = useState('...'); // Initialize with a placeholder
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [places, setPlaces] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalHotels, setModalHotels] = useState([]);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [activeBookingPlaceName, setActiveBookingPlaceName] = useState('');
+  const [activePlaceName, setActivePlaceName] = useState('');
 
   const heroImages = [
     "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&q=80&w=800",
@@ -42,9 +48,22 @@ const Home = () => {
     }
   }, []);
 
+  const fetchPlaces = useCallback(async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/places/');
+      const data = await response.json();
+      if (data.status) {
+        setPlaces(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching places:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchUserCount();
-  }, [fetchUserCount]);
+    fetchPlaces();
+  }, [fetchUserCount, fetchPlaces]);
 
   const sections = [
     { id: 'hero-section', name: 'Top' },
@@ -56,6 +75,17 @@ const Home = () => {
     { id: 'cta-section', name: 'Join Us' },
     { id: 'footer-section', name: 'Info' },
   ];
+
+  const openHotelsModal = (place) => {
+    setModalHotels(place.hotels || []);
+    setActivePlaceName(place.place_name);
+    setShowModal(true);
+  };
+  
+  const openBookingModal = (placeName) => {
+    setActiveBookingPlaceName(placeName);
+    setShowBookingModal(true);
+  };
 
   return (
     <div className="home-wrapper">
@@ -125,36 +155,165 @@ const Home = () => {
           <h2>Popular Treks & Routes</h2>
           <p>Discover trails tracked by thousands of adventurers</p>
         </div>
-        <div className="adventures-grid">
-          <div className="adventure-card">
-            <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=500" alt="Himalayan Trek" />
-            <div className="adventure-content">
-              <h3>Himalayas Grand Trek</h3>
-              <p className="difficulty">Difficulty: Hard</p>
-              <p>7-day expedition through snow-capped peaks with 12,450+ tracked routes</p>
-              <span className="rating">⭐⭐⭐⭐⭐ 4.8/5</span>
-            </div>
-          </div>
-          <div className="adventure-card">
-            <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&q=80&w=500" alt="Forest Trek" />
-            <div className="adventure-content">
-              <h3>Forest Wilderness Trail</h3>
-              <p className="difficulty">Difficulty: Medium</p>
-              <p>Multi-day camping through dense forests with real-time safety tracking</p>
-              <span className="rating">⭐⭐⭐⭐⭐ 4.7/5</span>
-            </div>
-          </div>
-          <div className="adventure-card">
-            <img src="https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&q=80&w=500" alt="Summit Trek" />
-            <div className="adventure-content">
-              <h3>Alpine Summit Adventure</h3>
-              <p className="difficulty">Difficulty: Expert</p>
-              <p>Challenge yourself on high-altitude peaks with expert guidance</p>
-              <span className="rating">⭐⭐⭐⭐⭐ 4.9/5</span>
-            </div>
+        <div className="adventures-scroll-wrapper" style={{ 
+          overflowX: 'auto', 
+          paddingBottom: '20px',
+          scrollbarWidth: 'thin',
+          WebkitOverflowScrolling: 'touch'
+        }}>
+          <div className="adventures-grid" style={{ 
+            display: 'flex', 
+            gap: '20px', 
+            width: 'max-content',
+            padding: '10px'
+          }}>
+            {places.map((place) => (
+              <div className="adventure-card" key={place.id} style={{ width: '300px', flexShrink: 0 }}>
+                <img 
+                  src={place.image?.startsWith('http') ? place.image : `http://127.0.0.1:8000${place.image}`} 
+                  alt={place.place_name} 
+                />
+                <div className="adventure-content">
+                  <h3>{place.place_name}</h3>
+                  <p className="difficulty">Stay: {place.number_of_days_stay} Days</p>
+                  <p style={{ display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{place.description}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+                    <span className="rating">⭐ {place.rating}/5</span>
+                    <span className="price" style={{ fontWeight: 'bold', color: '#2563eb' }}>₹{place.one_person_price} / person</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                    <button 
+                      style={{ 
+                        flex: 1, 
+                        padding: '10px', 
+                        fontSize: '0.9rem', 
+                        border: '2px solid #2563eb', 
+                        backgroundColor: '#f0f7ff', 
+                        color: '#2563eb', 
+                        borderRadius: '8px', 
+                        fontWeight: '700', 
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                      }}
+                      onClick={() => openHotelsModal(place)}
+                    >
+                      🏨 View Hotels
+                    </button>
+                    <button 
+                      style={{ flex: 1, padding: '10px', fontSize: '0.9rem', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                      onClick={() => openBookingModal(place.place_name)}
+                    >Book Now</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {places.length === 0 && <p>Discovering destinations for you...</p>}
           </div>
         </div>
       </section>
+
+      {/* Hotels Modal */}
+      {showModal && (
+        <div className="modal-overlay" style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center',
+          alignItems: 'center', zIndex: 1000, padding: '20px'
+        }} onClick={() => setShowModal(false)}>
+          <div className="modal-content animate-pop-in" style={{
+            backgroundColor: 'white', padding: '30px', borderRadius: '15px',
+            maxWidth: '900px', width: '100%', maxHeight: '90vh', overflowY: 'auto',
+            position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+          }} onClick={e => e.stopPropagation()}>
+            <button style={{
+              position: 'absolute', top: '15px', right: '20px', background: 'none',
+              border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#666'
+            }} onClick={() => setShowModal(false)}>✕</button>
+            
+            <h2 style={{ marginBottom: '20px', color: '#2c3e50' }}>Stay options in {activePlaceName}</h2>
+            
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
+              gap: '20px' 
+            }}>
+              {modalHotels.map(hotel => (
+                <div key={hotel.id} style={{ 
+                  border: '1px solid #eee', 
+                  borderRadius: '10px', 
+                  overflow: 'hidden',
+                  transition: 'transform 0.2s'
+                }}>
+                  <img 
+                    src={hotel.hotel_image?.startsWith('http') ? hotel.hotel_image : `http://127.0.0.1:8000${hotel.hotel_image}`} 
+                    alt={hotel.hotel_name}
+                    style={{ width: '100%', height: '150px', objectFit: 'cover' }}
+                  />
+                  <div style={{ padding: '15px' }}>
+                    <h4 style={{ margin: '0 0 5px 0' }}>{hotel.hotel_name}</h4>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px' }}>{hotel.hotel_description}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                      <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>⭐ {hotel.hotel_rating}</span>
+                      <span style={{ fontWeight: '600' }}>₹{hotel.hotel_price}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {modalHotels.length === 0 && (
+                <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px' }}>
+                  <p style={{ color: '#7f8c8d', fontSize: '1.1rem' }}>No hotels registered for this destination yet.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Modal */}
+      {showBookingModal && (
+        <div className="modal-overlay" style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center',
+          alignItems: 'center', zIndex: 1000, padding: '20px'
+        }} onClick={() => setShowBookingModal(false)}>
+          <div className="modal-content animate-pop-in" style={{
+            backgroundColor: 'white', padding: '30px', borderRadius: '15px',
+            maxWidth: '450px', width: '100%', position: 'relative',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', textAlign: 'center'
+          }} onClick={e => e.stopPropagation()}>
+            <button style={{
+              position: 'absolute', top: '15px', right: '20px', background: 'none',
+              border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#666'
+            }} onClick={() => setShowBookingModal(false)}>✕</button>
+
+            <div style={{ fontSize: '3.5rem', marginBottom: '15px' }}>🧳</div>
+            <h2 style={{ marginBottom: '10px', color: '#1e293b', fontWeight: '800' }}>Ready for {activeBookingPlaceName}?</h2>
+            <p style={{ fontSize: '1.1rem', marginBottom: '30px', color: '#64748b', lineHeight: '1.5' }}>
+              You need to be part of our explorer community to book this trip. Please <Link to="/login" style={{ color: '#2563eb', fontWeight: '600', textDecoration: 'none' }}>login</Link> or <Link to="/register" style={{ color: '#2563eb', fontWeight: '600', textDecoration: 'none' }}>register</Link> to continue.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Link to="/login" style={{ 
+                padding: '14px', 
+                backgroundColor: '#2563eb', 
+                color: '#ffffff', 
+                borderRadius: '10px', 
+                textDecoration: 'none', 
+                fontWeight: '700',
+                fontSize: '1.1rem'
+              }} onClick={() => setShowBookingModal(false)}>Login to Book</Link>
+              <Link to="/register" style={{ 
+                padding: '14px', 
+                border: '2px solid #2563eb', 
+                color: '#2563eb', 
+                borderRadius: '10px', 
+                textDecoration: 'none', 
+                fontWeight: '700',
+                fontSize: '1.1rem',
+                backgroundColor: '#ffffff'
+              }} onClick={() => setShowBookingModal(false)}>Register Now</Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* How It Works Section */}
       <section id="how-it-works-section" className="how-it-works container">

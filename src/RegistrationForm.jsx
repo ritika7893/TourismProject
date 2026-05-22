@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './RegistrationForm.css';
+import './Login.css'; // Reuse login styles for standalone page
 
-const RegistrationForm = ({ onTrigger }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const RegistrationForm = ({ onTrigger, standalone = false }) => {
+  const [isOpen, setIsOpen] = useState(standalone);
   const [step, setStep] = useState(1); // 1: Name/Mobile, 2: OTP
   const [formData, setFormData] = useState({ name: '', mobile_number: '', password: '' });
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (standalone) {
+      setIsOpen(true);
+    }
+  }, [standalone]);
 
   // Mock API for Sending OTP
   const sendOtpApi = async (mobile_number) => {
@@ -62,9 +71,13 @@ const RegistrationForm = ({ onTrigger }) => {
   };
 
   const handleClose = () => {
-    setIsOpen(false);
-    setFormData({ name: '', mobile_number: '', password: '' });
-    setOtp('');
+    if (standalone) {
+      navigate('/');
+    } else {
+      setIsOpen(false);
+      setFormData({ name: '', mobile_number: '', password: '' });
+      setOtp('');
+    }
   };
 
   const onSendOtp = async (e) => {
@@ -103,15 +116,15 @@ const RegistrationForm = ({ onTrigger }) => {
   };
 
   return (
-    <div className="registration-container">
-      <button className="nav-register-btn" onClick={handleOpen}>Register</button>
+    <div className={standalone ? "login-page" : "registration-container"}>
+      {!standalone && <button className="nav-register-btn" onClick={handleOpen}>Register</button>}
 
       {isOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content animate-pop-in">
-            <button className="close-btn" onClick={handleClose}>✕</button>
+        <div className={standalone ? "login-card animate-pop-in" : "modal-overlay"}>
+          <div className={standalone ? "" : "modal-content animate-pop-in"}>
+            {!standalone && <button className="close-btn" onClick={handleClose}>✕</button>}
             
-            <div className="modal-header">
+            <div className={standalone ? "login-header" : "modal-header"}>
               <h2>{step === 1 ? 'Start Your Journey' : 'Verify Mobile'}</h2>
               <p>{step === 1 ? 'Fill in your details to get started.' : `Enter the code sent to ${formData.mobile_number}`}</p>
             </div>
