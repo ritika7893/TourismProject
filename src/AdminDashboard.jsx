@@ -3,7 +3,7 @@ import DashboardTopNav from './DashboardTopNav.jsx';
 import './Dashboard.css';
 
 const AdminDashboard = () => {
-  const [view, setView] = useState('summary'); // summary, add, list, add-hotel, view-hotels
+  const [view, setView] = useState('summary'); // summary, add, list, add-hotel, view-hotels, all-hotels
   const [places, setPlaces] = useState([]);
   const [formData, setFormData] = useState({
     place_name: '',
@@ -25,6 +25,8 @@ const AdminDashboard = () => {
   const [hotelImage, setHotelImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+
+  const totalHotels = places.reduce((acc, place) => acc + (place.hotels?.length || 0), 0);
 
   useEffect(() => {
     fetchPlaces();
@@ -215,36 +217,88 @@ const AdminDashboard = () => {
       <div className="dashboard-body">
         <div className="role-dashboard">
           {view === 'summary' && (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '50px 0' }}>
-              <div 
-                className="dash-card admin-card animate-pop-in" 
-                style={{ 
-                  width: '280px', 
-                  textAlign: 'center', 
-                  cursor: 'pointer',
-                  padding: '40px 20px'
-                }}
-                onClick={() => setView('list')}
-              >
-                <div style={{ fontSize: '3.5rem', marginBottom: '15px' }}>🏗️</div>
-                <h3 style={{ fontSize: '1.4rem', color: '#2c3e50' }}>Registered Places</h3>
-                <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#2563eb', margin: '15px 0' }}>
-                  {places.length}
-                </div>
-                <button 
+            <div className="admin-summary-view animate-pop-in" style={{ padding: '14px' }}>
+              <div style={{ marginBottom: '30px' }}>
+                <h1 style={{ fontSize: '2rem', color: '#1e293b', marginBottom: '10px' }}>Admin Overview</h1>
+                <p style={{ color: '#64748b' }}>Manage your travel catalog and monitor registered services.</p>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '25px', marginBottom: '40px' }}>
+                {/* Stat Card 1 */}
+                <div 
+                  className="dash-card admin-card" 
                   style={{
-                    backgroundColor: '#2563eb',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '6px',
-                    fontWeight: '600',
+                    padding: '30px', 
+                    textAlign: 'left', 
+                    borderLeft: '5px solid #2563eb',
+                    background: '#fff',
                     cursor: 'pointer'
                   }}
-                  onClick={(e) => { e.stopPropagation(); setView('add'); }}
+                  onClick={() => setView('list')}
                 >
-                  Register New Place
-                </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Destinations</p>
+                      <h3 style={{ fontSize: '2.2rem', margin: '10px 0', color: '#1e293b' }}>{places.length}</h3>
+                    </div>
+                    <div style={{ fontSize: '2.5rem' }}>🌍</div>
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: '#2563eb', fontWeight: '600' }}>Manage all places →</p>
+                </div>
+
+                {/* Stat Card 2 */}
+                <div 
+                  className="dash-card admin-card" 
+                  style={{
+                    padding: '30px', 
+                    textAlign: 'left', 
+                    borderLeft: '5px solid #10b981',
+                    background: '#fff',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setView('all-hotels')}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Total Hotels</p>
+                      <h3 style={{ fontSize: '2.2rem', margin: '10px 0', color: '#1e293b' }}>{totalHotels}</h3>
+                    </div>
+                    <div style={{ fontSize: '2.5rem' }}>🏨</div>
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: '600' }}>View all registered hotels →</p>
+                </div>
+
+                {/* Quick Action Card */}
+                <div 
+                  className="dash-card admin-card" 
+                  style={{
+                    padding: '30px', 
+                    textAlign: 'center', 
+                    background: '#f8fafc',
+                    border: '2px dashed #cbd5e1',
+                    color: '#475569',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}
+                >
+                  <h3 style={{ margin: '0 0 15px 0', fontSize: '1.3rem', fontWeight: '700' }}>Need to expand?</h3>
+                  <button 
+                    style={{
+                      backgroundColor: '#2563eb',
+                      color: 'white',
+                      border: 'none',
+                      padding: '12px 24px',
+                      borderRadius: '10px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      fontSize: '0.95rem'
+                    }}
+                    onClick={() => setView('add')}
+                  >+ Add New Destination</button>
+                </div>
               </div>
             </div>
           )}
@@ -252,11 +306,11 @@ const AdminDashboard = () => {
           {(view === 'add' || view === 'edit-place') && (
             <div className="admin-form-centered" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ width: '100%', maxWidth: '600px', marginBottom: '1rem', display: 'flex' }}>
-                <button onClick={() => setView(view === 'add' ? 'summary' : 'list')} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: '600', fontSize: '1rem' }}>← Back</button>
+                <button onClick={() => setView(view === 'add' ? 'summary' : 'list')} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: '700', fontSize: '1rem' }}>← Back</button>
               </div>
               <div className="dash-card admin-card animate-pop-in" style={{ maxWidth: '600px', width: '100%', padding: '30px' }}>
                 <div className="card-header" style={{ marginBottom: '25px' }}>
-                  <h2 style={{ fontSize: '1.8rem', color: '#2c3e50', marginBottom: '5px' }}>{view === 'add' ? 'Add New Place' : 'Edit Destination'}</h2>
+                  <h2 style={{ fontSize: '1.8rem', color: '#1e293b', marginBottom: '5px' }}>{view === 'add' ? '✨ Add New Place' : '📝 Edit Destination'}</h2>
                   <p style={{ color: '#7f8c8d' }}>{view === 'add' ? 'Create a new destination post.' : 'Update the details for this destination.'}</p>
                 </div>
 
@@ -301,10 +355,10 @@ const AdminDashboard = () => {
           {(view === 'add-hotel' || view === 'edit-hotel') && (
             <div className="admin-form-centered" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ width: '100%', maxWidth: '600px', marginBottom: '1rem' }}>
-                <button onClick={() => setView('list')} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: '600' }}>← Back to Places</button>
+                <button onClick={() => setView('list')} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: '700' }}>← Back to Places</button>
               </div>
               <div className="dash-card admin-card animate-pop-in" style={{ maxWidth: '600px', width: '100%', padding: '30px' }}>
-                <h2 style={{ marginBottom: '10px' }}>{view === 'add-hotel' ? 'Add Hotel' : 'Edit Hotel'} for {selectedPlace?.place_name}</h2>
+                <h2 style={{ marginBottom: '10px', color: '#1e293b' }}>{view === 'add-hotel' ? '🏨 Add Hotel' : '🛠️ Edit Hotel'} for {selectedPlace?.place_name}</h2>
                 
                 {message.text && <div className={`alert alert-${message.type}`} style={{ padding: '10px', borderRadius: '5px', marginBottom: '15px', backgroundColor: message.type === 'success' ? '#d4edda' : '#f8d7da' }}>{message.text}</div>}
 
@@ -317,9 +371,9 @@ const AdminDashboard = () => {
                   </div>
                   <div className="form-group" style={{ marginBottom: '20px' }}>
                     <label>Hotel Description</label>
-                    <textarea style={{ width: '100%', padding: '8px' }} name="hotel_description" value={hotelFormData.hotel_description} onChange={handleHotelChange} rows="3" required />
+                    <textarea style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }} name="hotel_description" value={hotelFormData.hotel_description} onChange={handleHotelChange} rows="3" required />
                   </div>
-                  <button type="submit" disabled={loading} className="btn btn-primary w-100" style={{ padding: '10px', fontWeight: 'bold' }}>
+                  <button type="submit" disabled={loading} className="btn btn-primary w-100" style={{ padding: '12px', fontWeight: 'bold', fontSize: '1.1rem' }}>
                     {loading ? 'Saving...' : (view === 'add-hotel' ? 'Register Hotel' : 'Update Hotel')}
                   </button>
                 </form>
@@ -338,14 +392,14 @@ const AdminDashboard = () => {
                     </span>
                   )}
                 </div>
-                <button onClick={() => setView('list')} style={{ padding: '8px 16px', borderRadius: '5px', cursor: 'pointer' }}>Back to Places</button>
+                <button onClick={() => setView('list')} style={{ padding: '8px 16px', borderRadius: '5px', border: '1px solid #ccc', cursor: 'pointer', fontWeight: '600' }}>Back to Places</button>
               </div>
               <div className="dashboard-cards">
                 {selectedPlace?.hotels?.map((hotel) => (
                   <div key={hotel.id} className="dash-card admin-card animate-pop-in" style={{ padding: '0', overflow: 'hidden' }}>
                     <img 
                       src={hotel.hotel_image?.startsWith('http') ? hotel.hotel_image : `http://127.0.0.1:8000${hotel.hotel_image}`} 
-                      alt={hotel.hotel_name} 
+                      alt={hotel.hotel_name}  
                       style={{ width: '100%', height: '150px', objectFit: 'cover' }} 
                     />
                     <div style={{ padding: '1rem' }}>
@@ -374,6 +428,64 @@ const AdminDashboard = () => {
             </div>
           )}
 
+          {view === 'all-hotels' && (
+            <div className="places-list-view">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <h2 style={{ margin: 0 }}>All Registered Hotels</h2>
+                  {message.text && (
+                    <span style={{ padding: '4px 12px', borderRadius: '4px', fontSize: '0.9rem', backgroundColor: message.type === 'success' ? '#d4edda' : '#f8d7da' }}>
+                      {message.text}
+                    </span>
+                  )}
+                </div>
+                <button onClick={() => setView('summary')} style={{ padding: '8px 16px', borderRadius: '5px', border: '1px solid #ccc', cursor: 'pointer', fontWeight: '600' }}>Back to Stats</button>
+              </div>
+              <div className="dashboard-cards">
+                {places.flatMap(place => 
+                  (place.hotels || []).map(hotel => ({ ...hotel, place_name: place.place_name, place_id: place.id }))
+                ).map((hotel) => (
+                  <div key={hotel.id} className="dash-card admin-card animate-pop-in" style={{ padding: '0', overflow: 'hidden' }}>
+                    <img 
+                      src={hotel.hotel_image?.startsWith('http') ? hotel.hotel_image : `http://127.0.0.1:8000${hotel.hotel_image}`} 
+                      alt={hotel.hotel_name}  
+                      style={{ width: '100%', height: '150px', objectFit: 'cover' }} 
+                    />
+                    <div style={{ padding: '1rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                        <h3 style={{ margin: 0 }}>{hotel.hotel_name}</h3>
+                        <span style={{ backgroundColor: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700' }}>
+                          ⭐ {hotel.hotel_rating}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: '700', marginBottom: '10px' }}>📍 {hotel.place_name}</p>
+                      <p style={{ margin: '5px 0', fontSize: '0.85rem' }}><strong>Price:</strong> ₹{hotel.hotel_price}</p>
+                      <p style={{ color: '#666', fontSize: '0.8rem', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {hotel.hotel_description}
+                      </p>
+                      
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '15px' }}>
+                        <button 
+                          onClick={() => {
+                            const place = places.find(p => p.id === hotel.place_id);
+                            setSelectedPlace(place);
+                            startEditHotel(hotel);
+                          }}
+                          style={{ flex: 1, padding: '8px', fontSize: '0.75rem', borderRadius: '6px', cursor: 'pointer', border: '1px solid #2563eb', backgroundColor: '#fff', color: '#2563eb', fontWeight: '600' }}
+                        >Edit</button>
+                        <button 
+                          onClick={() => handleDeleteHotel(hotel.id)}
+                          style={{ flex: 1, padding: '8px', fontSize: '0.75rem', borderRadius: '6px', cursor: 'pointer', border: 'none', backgroundColor: '#ef4444', color: '#fff', fontWeight: '600' }}
+                        >Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {totalHotels === 0 && <p style={{ textAlign: 'center', gridColumn: '1/-1', padding: '40px', color: '#64748b' }}>No hotels registered yet.</p>}
+              </div>
+            </div>
+          )}
+
           {view === 'list' && (
             <div className="places-list-view">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -385,7 +497,7 @@ const AdminDashboard = () => {
                     </span>
                   )}
                 </div>
-                <button onClick={() => setView('summary')} style={{ padding: '8px 16px', borderRadius: '5px', border: '1px solid #ccc', cursor: 'pointer' }}>Back to Dashboard</button>
+                <button onClick={() => setView('summary')} style={{ padding: '8px 16px', borderRadius: '5px', border: '1px solid #ccc', cursor: 'pointer', fontWeight: '600' }}>Back to Stats</button>
               </div>
               <div className="dashboard-cards">
                 {places.map((place) => (
