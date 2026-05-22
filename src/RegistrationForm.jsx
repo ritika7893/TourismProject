@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './RegistrationForm.css';
 import './Login.css'; // Reuse login styles for standalone page
 
@@ -122,11 +122,16 @@ const RegistrationForm = ({ onTrigger, standalone = false }) => {
       {isOpen && (
         <div className={standalone ? "login-card animate-pop-in" : "modal-overlay"}>
           <div className={standalone ? "" : "modal-content animate-pop-in"}>
-            {!standalone && <button className="close-btn" onClick={handleClose}>✕</button>}
+            {!standalone ? <button className="close-btn" onClick={handleClose}>✕</button> : (
+              <div style={{ marginBottom: '20px' }}>
+                <Link to="/" style={{ textDecoration: 'none', color: '#2563eb', fontWeight: '700', fontSize: '0.9rem' }}>← Back to Base Camp</Link>
+              </div>
+            )}
             
             <div className={standalone ? "login-header" : "modal-header"}>
-              <h2>{step === 1 ? 'Start Your Journey' : 'Verify Mobile'}</h2>
-              <p>{step === 1 ? 'Fill in your details to get started.' : `Enter the code sent to ${formData.mobile_number}`}</p>
+              {standalone && <div style={{ fontSize: '3.5rem', marginBottom: '10px', textAlign: 'center' }}>🎒</div>}
+              <h2 style={{ fontSize: standalone ? '2rem' : 'inherit', fontWeight: '800' }}>{step === 1 ? 'Start Your Journey' : 'Verify Mobile'}</h2>
+              <p style={{ color: '#64748b' }}>{step === 1 ? 'Fill in your details to get started.' : `Enter the code sent to ${formData.mobile_number}`}</p>
             </div>
 
             {message.text && <div className={`alert alert-${message.type}`}>{message.text}</div>}
@@ -187,6 +192,11 @@ const RegistrationForm = ({ onTrigger, standalone = false }) => {
                 </>
               )}
             </form>
+            {standalone && (
+              <div style={{ marginTop: '25px', textAlign: 'center', color: '#64748b', borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
+                Already tracking trails? <Link to="/login" style={{ color: '#2563eb', fontWeight: '700', textDecoration: 'none' }}>Sign In</Link>
+              </div>
+            )}
           </div>
         </div>
       )}

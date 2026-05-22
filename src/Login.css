@@ -1,18 +1,44 @@
 .login-page {
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Changed from center to respect margins on tall content */
   justify-content: center;
-  min-height: calc(100vh - 150px);
-  padding: 20px;
+  min-height: 100vh;
+  padding: 40px 20px; /* Provides consistent gutter around the card */
+  position: relative;
+  overflow-y: auto; /* Allows scrolling if card exceeds height */
+}
+
+.login-page::before {
+  content: "";
+  position: fixed;
+  top: -5%;
+  left: -5%;
+  width: 110%;
+  height: 110%;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+                    url("https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1920");
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+  animation: kenBurnsZoom 20s infinite alternate ease-in-out;
+  will-change: transform;
+}
+
+@keyframes kenBurnsZoom {
+  0% { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.1) translate(-1%, -1%); }
 }
 
 .login-card {
-  background: white;
-  padding: 40px;
+  background-color: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  padding: 30px 35px; /* Reduced padding to fit better on screen */
   border-radius: 20px;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 380px; /* Slightly reduced width */
+  margin: auto; /* Centering with respect to parent flex-start */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  z-index: 1;
 }
 
 .login-header {

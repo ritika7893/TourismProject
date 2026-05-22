@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import './Login.css';
 
@@ -58,9 +58,13 @@ const Login = () => {
   return (
     <div className="login-page">
       <div className="login-card animate-pop-in">
+        <div style={{ marginBottom: '20px' }}>
+          <Link to="/" style={{ textDecoration: 'none', color: '#2563eb', fontWeight: '700', fontSize: '0.9rem' }}>← Back to Base Camp</Link>
+        </div>
         <div className="login-header">
-          <h2>Welcome Back</h2>
-          <p>Sign in to your adventure tracker</p>
+          <div style={{ fontSize: '3.5rem', marginBottom: '10px', textAlign: 'center' }}>🏔️</div>
+          <h2 style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b', textAlign: 'center' }}>Welcome Back</h2>
+          <p style={{ color: '#64748b', textAlign: 'center', fontSize: '1.1rem' }}>Sign in to continue tracking your adventure.</p>
         </div>
 
         {error && <div className="login-error">{error}</div>}
@@ -92,6 +96,10 @@ const Login = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+
+        <div style={{ marginTop: '25px', textAlign: 'center', color: '#64748b', borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
+          New to adventure tracking? <Link to="/register" style={{ color: '#2563eb', fontWeight: '700', textDecoration: 'none' }}>Register Now</Link>
+        </div>
       </div>
     </div>
   );
