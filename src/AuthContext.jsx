@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
+import { BASE_URL } from './api/config.jsx';
 
 const AuthContext = createContext();
 
@@ -40,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     if (!tokenToUse) return;
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/refresh-token/', {
+      const response = await fetch(`${BASE_URL}/refresh-token/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh_token: tokenToUse }),

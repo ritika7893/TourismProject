@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { BASE_URL } from './api/config.jsx';
 import './Login.css';
 
 const Login = () => {
@@ -28,7 +29,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/login/', {
+      const response = await fetch(`${BASE_URL}/login/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

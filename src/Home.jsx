@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext.jsx';
+import { BASE_URL } from './api/config.jsx';
 import './Home.css';
 import HomeQuickLinks from './HomeQuickLinks.jsx'; // Import the new component
 
@@ -93,7 +94,7 @@ const Home = () => {
 
   const fetchUserCount = useCallback(async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/user-count/');
+      const response = await fetch(`${BASE_URL}/user-count/`);
       const data = await response.json();
       
       // Your API returns 'user_count', so we check for that specifically
@@ -111,7 +112,7 @@ const Home = () => {
 
   const fetchPlaces = useCallback(async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/places/');
+      const response = await fetch(`${BASE_URL}/places/`);
       const data = await response.json();
       if (data.status) {
         setPlaces(data.data);
@@ -273,7 +274,7 @@ const Home = () => {
             {[...Array(20)].flatMap(() => places).map((place, index) => (
               <div className="adventure-card" key={`${place.id}-${index}`} style={{ width: '300px', flexShrink: 0 }}>
                 <img 
-                  src={place.image?.startsWith('http') ? place.image : `http://127.0.0.1:8000${place.image}`} 
+                  src={place.image?.startsWith('http') ? place.image : `${BASE_URL}${place.image}`} 
                   alt={place.place_name} 
                 />
                 <div className="adventure-content">

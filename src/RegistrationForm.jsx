@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { BASE_URL } from './api/config.jsx';
 import './RegistrationForm.css';
 import './Login.css'; // Reuse login styles for standalone page
 
@@ -21,7 +22,7 @@ const RegistrationForm = ({ onTrigger, standalone = false }) => {
   // Mock API for Sending OTP
   const sendOtpApi = async (mobile_number) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/send-otp/', { // Changed mobile to mobile_number
+      const response = await fetch(`${BASE_URL}/send-otp/` , { // Changed mobile to mobile_number
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: mobile_number }),
@@ -36,7 +37,7 @@ const RegistrationForm = ({ onTrigger, standalone = false }) => {
   // Mock API for Verifying OTP
   const verifyOtpApi = async (mobile_number, otp) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/verify-otp/', { // Changed mobile to mobile_number
+      const response = await fetch(`${BASE_URL}/verify-otp/`, { // Changed mobile to mobile_number
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: mobile_number, otp }),
@@ -51,7 +52,7 @@ const RegistrationForm = ({ onTrigger, standalone = false }) => {
   // Mock API for Final Registration
   const registerApi = async (data) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/register/', {
+      const response = await fetch(`${BASE_URL}/register/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

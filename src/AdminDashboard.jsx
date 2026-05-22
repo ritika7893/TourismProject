@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DashboardTopNav from './DashboardTopNav.jsx';
 import UserTable from './UserTable.jsx';
+import { BASE_URL } from './api/config.jsx';
 import './Dashboard.css';
 
 const AdminDashboard = () => {
@@ -95,7 +96,7 @@ const AdminDashboard = () => {
 
   const fetchPlaces = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/places/');
+      const response = await fetch(`${BASE_URL}/places/`);
       const result = await response.json();
       if (result.status) {
         setPlaces(result.data);
@@ -108,7 +109,7 @@ const AdminDashboard = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/register/');
+      const response = await fetch(`${BASE_URL}/register/`);
       const result = await response.json();
       if (result.status) {
         setUsersList(result.data);
@@ -122,7 +123,7 @@ const AdminDashboard = () => {
 
   const fetchUserCount = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/user-count/');
+      const response = await fetch(`${BASE_URL}/user-count/`);
       const data = await response.json();
       // API returns user_count
       const countValue = data.user_count !== undefined ? data.user_count : data.count;
@@ -281,10 +282,10 @@ const AdminDashboard = () => {
   const handleDeleteHotel = async (hotelId) => {
     if (!window.confirm("Are you sure you want to delete this hotel?")) return;
     try {
-      const response = await fetch(`http://127.0.0.1:8000/hotels/${hotelId}/`, { method: 'DELETE' });
+      const response = await fetch(`${BASE_URL}/hotels/${hotelId}/`, { method: 'DELETE' });
       if (response.ok) {
         setMessage({ type: 'success', text: 'Hotel deleted successfully!' });
-        const res = await fetch('http://127.0.0.1:8000/places/');
+        const res = await fetch(`${BASE_URL}/places/`);
         const result = await res.json();
         if (result.status) {
           setPlaces(result.data);
@@ -547,7 +548,7 @@ const AdminDashboard = () => {
                 {selectedPlace?.hotels?.map((hotel) => (
                   <div key={hotel.id} className="dash-card admin-card animate-pop-in" style={{ padding: '0', overflow: 'hidden' }}>
                     <img 
-                      src={hotel.hotel_image?.startsWith('http') ? hotel.hotel_image : `http://127.0.0.1:8000${hotel.hotel_image}`} 
+                      src={hotel.hotel_image?.startsWith('http') ? hotel.hotel_image : `${BASE_URL}${hotel.hotel_image}`} 
                       alt={hotel.hotel_name}  
                       style={{ width: '100%', height: '150px', objectFit: 'cover' }} 
                     />
