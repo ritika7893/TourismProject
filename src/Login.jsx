@@ -41,7 +41,8 @@ const Login = () => {
         login({ 
           access_token: data.access_token, 
           refresh_token: data.refresh_token,
-          mobile_number: formData.mobile_number 
+          user_id: data.user_id, // Store user_id from response
+          role: data.role // Store role from response
         });
         navigate('/dashboard');
       } else {

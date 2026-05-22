@@ -5,14 +5,17 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
+    const initialUser = saved ? JSON.parse(saved) : null;
+    console.log('AuthContext: Initial user from localStorage:', initialUser);
+    return initialUser;
   });
   const [accessToken, setAccessToken] = useState(localStorage.getItem('access_token'));
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refresh_token'));
   const [authError, setAuthError] = useState(null);
 
   const login = (data) => {
-    const userObj = { mobile_number: data.mobile_number || 'Adventurer' };
+    const userObj = { user_id: data.user_id, role: data.role };
+    console.log('AuthContext: Logging in user:', userObj);
     setUser(userObj);
     setAccessToken(data.access_token);
     setRefreshToken(data.refresh_token);

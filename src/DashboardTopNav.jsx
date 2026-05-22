@@ -70,7 +70,7 @@ const DashboardTopNav = ({ variant = 'user' }) => {
 
         <div className="topnav-user-info">
           <span className="user-id">
-            {isAdmin ? 'Admin' : 'Account'}: {user?.mobile_number}
+            {isAdmin ? 'Admin' : 'Account'}: {user?.user_id}
           </span>
           <button className="dashboard-logout-btn" onClick={handleLogout}>
             Logout
@@ -115,7 +115,7 @@ const DashboardTopNav = ({ variant = 'user' }) => {
         </nav>
         <div className="drawer-footer">
           <span className="drawer-account-label">
-            {isAdmin ? 'Admin' : 'Account'}: {user?.mobile_number}
+            {isAdmin ? 'Admin' : 'Account'}: {user?.user_id}
           </span>
           <button className="drawer-logout-btn" onClick={handleLogout}>
             Logout

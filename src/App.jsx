@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import NavBar from './NavBar.jsx';
@@ -15,8 +15,8 @@ const AppContent = () => {
   // Function to determine if the main NavBar should be hidden (e.g., in Dashboard)
    const shouldHideNavBar = () => {
      return (
-       location.pathname === "/AdminDashboard" ||
-       location.pathname === "/UserDashboard"
+       location.pathname.startsWith("/AdminDashboard") ||
+       location.pathname.startsWith("/UserDashboard")
      );
    };
 
@@ -28,14 +28,14 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        {/* <Route path="/dashboard" element={
+        {/* Redirect based on role after successful login to /dashboard */}
+        <Route path="/dashboard" element={
           <ProtectedRoute>
-            {user?.role === 'admin' ? <AdminDashboard /> : <UserDashboard />}
+            {user?.role === 'admin' ? <Navigate to="/AdminDashboard" replace /> : <Navigate to="/UserDashboard" replace />}
           </ProtectedRoute>
-        } /> */}
-        <Route path="/AdminDashboard" element={<AdminDashboard />} />
-
-      <Route path="/UserDashboard" element={<UserDashboard />} />
+        } />
+        <Route path="/AdminDashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/UserDashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
 
       </Routes>
     </div>
