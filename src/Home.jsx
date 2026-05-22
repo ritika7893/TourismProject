@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext.jsx';
 import './Home.css';
@@ -14,6 +14,67 @@ const Home = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [activeBookingPlaceName, setActiveBookingPlaceName] = useState('');
   const [activePlaceName, setActivePlaceName] = useState('');
+  const [isAutoScrollActive, setIsAutoScrollActive] = useState(true);
+  const scrollRef = useRef(null);
+
+  // Auto-scroll logic for horizontal scroller
+  useEffect(() => {
+    let interval;
+    if (isAutoScrollActive && places.length > 0 && scrollRef.current) {
+      const setTotalWidth = places.length * 320; // 300px card + 20px gap
+
+      interval = setInterval(() => {
+        if (scrollRef.current) {
+          // Only auto-scroll if the container is not being hovered
+          if (!scrollRef.current.matches(':hover')) {
+            scrollRef.current.scrollLeft += 1;
+
+            // Seamless loop: once we've scrolled past the middle sets, 
+            // jump back by one set width to keep the runway long.
+            if (scrollRef.current.scrollLeft >= setTotalWidth * 10) {
+              scrollRef.current.scrollLeft -= setTotalWidth;
+            }
+          }
+        }
+      }, 30); // Adjust speed here (lower is faster)
+    }
+    return () => clearInterval(interval);
+  }, [places, isAutoScrollActive]);
+
+  // Set initial scroll position to the middle to allow bidirectional infinite scrolling
+  useEffect(() => {
+    if (places.length > 0 && scrollRef.current) {
+      // Start at the 8th set for maximum runway in both directions
+      scrollRef.current.scrollLeft = places.length * 320 * 8;
+    }
+  }, [places]);
+
+  const handleManualScroll = (direction) => {
+    if (scrollRef.current && places.length > 0) {
+      setIsAutoScrollActive(false); // Stop moving cards automatically when icons are clicked
+      
+      const cardTotalWidth = 320; // 300px card width + 20px gap
+      const setTotalWidth = places.length * cardTotalWidth;
+      let currentScroll = scrollRef.current.scrollLeft;
+
+      // Normalization: shift current position into a stable middle zone instantly.
+      // This jump is invisible but ensures we never hit the physical scroll end.
+      const normalizedScroll = (currentScroll % setTotalWidth) + setTotalWidth * 8;
+      scrollRef.current.scrollLeft = normalizedScroll;
+      
+      let targetScroll;
+      if (direction === 'right') {
+        targetScroll = Math.floor(normalizedScroll / cardTotalWidth) * cardTotalWidth + cardTotalWidth;
+      } else {
+        targetScroll = Math.ceil(normalizedScroll / cardTotalWidth) * cardTotalWidth - cardTotalWidth;
+      }
+
+      scrollRef.current.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const heroImages = [
     "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&q=80&w=800",
@@ -151,24 +212,66 @@ const Home = () => {
 
       {/* Featured Adventures */}
       <section id="featured-adventures-section" className="featured-adventures container">
-        <div className="section-header">
-          <h2>Popular Treks & Routes</h2>
-          <p>Discover trails tracked by thousands of adventurers</p>
+        <style>{`
+          .adventures-scroll-wrapper::-webkit-scrollbar {
+            display: none;
+          }
+          .scroll-control-btn {
+            background: white;
+            border: 2px solid #2563eb;
+            color: #2563eb;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+            z-index: 5;
+          }
+          .scroll-control-btn:hover {
+            background: #2563eb;
+            color: white;
+            transform: scale(1.1);
+          }
+        `}</style>
+        <div className="section-header" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <h2 style={{ margin: 0 }}>Popular Treks & Routes</h2>
+          <p style={{ margin: '8px 0 0 0' }}>Discover trails tracked by thousands of adventurers</p>
         </div>
-        <div className="adventures-scroll-wrapper" style={{ 
-          overflowX: 'auto', 
+
+        <div className="scroller-relative-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <button 
+            className="scroll-control-btn" 
+            onClick={() => handleManualScroll('left')} 
+            aria-label="Previous"
+            style={{ position: 'absolute', left: '-10px', top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}
+          >❮</button>
+
+          <div className="adventures-scroll-wrapper" ref={scrollRef} style={{ 
+            overflowX: 'auto', 
           paddingBottom: '20px',
-          scrollbarWidth: 'thin',
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+            scrollBehavior: 'smooth',
+            width: '100%'
         }}>
           <div className="adventures-grid" style={{ 
             display: 'flex', 
             gap: '20px', 
             width: 'max-content',
-            padding: '10px'
+            padding: '10px',
           }}>
-            {places.map((place) => (
-              <div className="adventure-card" key={place.id} style={{ width: '300px', flexShrink: 0 }}>
+            {/* Repeat the list 20 times. This creates a massive scrollable track 
+                ensuring that the jump point is reachable even on high-resolution 
+                monitors with very few items. */}
+            {[...Array(20)].flatMap(() => places).map((place, index) => (
+              <div className="adventure-card" key={`${place.id}-${index}`} style={{ width: '300px', flexShrink: 0 }}>
                 <img 
                   src={place.image?.startsWith('http') ? place.image : `http://127.0.0.1:8000${place.image}`} 
                   alt={place.place_name} 
@@ -209,6 +312,14 @@ const Home = () => {
             ))}
             {places.length === 0 && <p>Discovering destinations for you...</p>}
           </div>
+        </div>
+
+          <button 
+            className="scroll-control-btn" 
+            onClick={() => handleManualScroll('right')} 
+            aria-label="Next"
+            style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}
+          >❯</button>
         </div>
       </section>
 
