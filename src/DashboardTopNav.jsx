@@ -35,15 +35,15 @@ const DashboardTopNav = ({ variant = 'user', onViewChange }) => {
   /* Nav links defined per role */
   const navItems = isAdmin
     ? [
-        { label: 'Overview',  href: 'summary'    },
-        { label: 'Places',    href: 'list'       },
-        { label: 'Hotels',    href: 'all-hotels' },
-        { label: 'Users',     href: 'users'      },
+        { label: 'Base Camp', icon: '🏔️', href: 'summary'    },
+        { label: 'Trail Map', icon: '🗺️', href: 'list'       },
+        { label: 'Lodges',    icon: '🏠', href: 'all-hotels' },
+        { label: 'Explorers', icon: '👥', href: 'users'      },
       ]
     : [
-        { label: 'Adventures', href: '#adventures' },
-        { label: 'Stats',      href: '#stats'      },
-        { label: 'Actions',    href: '#actions'    },
+        { label: 'My Treks',     icon: '🎒', href: '#adventures' },
+        { label: 'Gear & Stats', icon: '📊', href: '#stats'      },
+        { label: 'Expedition Hub', icon: '⚙️', href: '#actions'    },
       ];
 
   /* Close drawer after navigation */
@@ -59,21 +59,34 @@ const DashboardTopNav = ({ variant = 'user', onViewChange }) => {
     <>
       <header className={`dashboard-topnav ${isAdmin ? 'admin-topnav' : 'user-topnav'}`}>
         <div className="topnav-brand">
-          <h3>{isAdmin ? 'Admin Panel' : 'User Dashboard'}</h3>
+          <div className="brand-logo">{isAdmin ? '🛠️' : '🚀'}</div>
+          <div className="brand-text">
+            <h3>{isAdmin ? 'Command Center' : 'Explorer Hub'}</h3>
+            <span className="brand-tagline">Expedition Management</span>
+          </div>
         </div>
 
         {/* Desktop inline nav — hidden on ≤768px */}
         <nav className="topnav-links" aria-label="Dashboard navigation">
           {navItems.map((item) => (
             <a key={item.label} href={item.href} className="topnav-link" onClick={(e) => handleLinkClick(e, item.href)}>
-              {item.label}
+              <span className="link-icon">{item.icon}</span>
+              <span className="link-label">{item.label}</span>
             </a>
           ))}
         </nav>
 
         <div className="topnav-user-info">
-          <span className="user-id">
-            {isAdmin ? 'Admin' : 'Account'}: {user?.user_id}
+          <span className={`user-badge ${isAdmin ? 'badge-admin' : 'badge-explorer'}`}>
+            {isAdmin ? 'CHIEF GUIDE' : 'MASTER TREKKER'}
+          </span>
+          <span className="user-details">
+            <span className="user-id-label">ID: {user?.user_id}</span>
+            {!isAdmin && (
+              <div className="trek-progress-mini">
+                <div className="progress-bar" style={{ width: '65%' }}></div>
+              </div>
+            )}
           </span>
           <button className="dashboard-logout-btn" onClick={handleLogout}>
             Logout
@@ -95,7 +108,10 @@ const DashboardTopNav = ({ variant = 'user', onViewChange }) => {
       <div className={`drawer-overlay ${drawerOpen ? 'is-open' : ''}`} onClick={() => setDrawerOpen(false)} />
       <aside className={`drawer ${drawerOpen ? 'is-open' : ''}`} aria-label="Mobile navigation">
         <div className="drawer-header">
-          <span>{isAdmin ? 'Admin Panel' : 'User Dashboard'}</span>
+          <div className="drawer-brand">
+            <span className="brand-icon">{isAdmin ? '🛠️' : '🚀'}</span>
+            <span>{isAdmin ? 'Command Center' : 'Explorer Hub'}</span>
+          </div>
           <button
             className="drawer-close"
             aria-label="Close navigation"
@@ -112,7 +128,8 @@ const DashboardTopNav = ({ variant = 'user', onViewChange }) => {
               className="drawer-link"
               onClick={(e) => handleLinkClick(e, item.href)}
             >
-              {item.label}
+              <span className="drawer-link-icon">{item.icon}</span>
+              <span className="drawer-link-label">{item.label}</span>
             </a>
           ))}
         </nav>
