@@ -7,6 +7,7 @@ import Login from './Login.jsx';
 import UserDashboard from './UserDashboard.jsx';
 import AdminDashboard from './AdminDashboard.jsx';
 import RegistrationForm from './RegistrationForm.jsx';
+import VerticalTimelineNav from './VerticalTimelineNav.jsx';
 
 // Helper component to handle conditional layout logic inside the Router context
 const AppContent = () => {
@@ -25,6 +26,7 @@ const AppContent = () => {
     <div className="app-main-layout">
       {/* Conditionally render the main NavBar based on the function result */}
       {!shouldHideNavBar() && <NavBar />}
+      {!shouldHideNavBar() && <VerticalTimelineNav />}
 
       <Routes>
         <Route path="/" element={<Home />} />
