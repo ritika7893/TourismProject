@@ -99,7 +99,7 @@ const Home = () => {
       // Your API returns 'user_count', so we check for that specifically
       const countValue = data.user_count !== undefined ? data.user_count : data.count;
       if (response.ok && countValue !== undefined) {
-        setUserCount(countValue.toLocaleString()); // Format number with commas
+        setUserCount((countValue - 1).toLocaleString()); // Show total count - 1 as requested
       } else {
         const errorMsg = data.message || data.detail || data.error || 'Unknown error';
         console.error('Failed to fetch user count:', errorMsg, data);

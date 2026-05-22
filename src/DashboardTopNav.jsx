@@ -20,7 +20,7 @@ const CloseIcon = () => (
   </svg>
 );
 
-const DashboardTopNav = ({ variant = 'user' }) => {
+const DashboardTopNav = ({ variant = 'user', onViewChange }) => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -35,9 +35,10 @@ const DashboardTopNav = ({ variant = 'user' }) => {
   /* Nav links defined per role */
   const navItems = isAdmin
     ? [
-        { label: 'Users',     href: '#users'     },
-        { label: 'Settings',  href: '#settings'  },
-        { label: 'Reports',   href: '#reports'   },
+        { label: 'Overview',  href: 'summary'    },
+        { label: 'Places',    href: 'list'       },
+        { label: 'Hotels',    href: 'all-hotels' },
+        { label: 'Users',     href: 'users'      },
       ]
     : [
         { label: 'Adventures', href: '#adventures' },
@@ -49,7 +50,9 @@ const DashboardTopNav = ({ variant = 'user' }) => {
   const handleLinkClick = (e, href) => {
     e.preventDefault();
     setDrawerOpen(false);
-    // navigate(href);   // uncomment when routes exist
+    if (onViewChange && isAdmin) {
+      onViewChange(href);
+    }
   };
 
   return (

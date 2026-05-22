@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import DashboardTopNav from './DashboardTopNav.jsx';
+import UserTable from './UserTable.jsx';
 import './Dashboard.css';
 
 const AdminDashboard = () => {
-  const [view, setView] = useState('summary'); // summary, add, list, add-hotel, view-hotels, all-hotels
+  const [view, setView] = useState('summary'); // summary, add, list, add-hotel, view-hotels, all-hotels, users
   const [places, setPlaces] = useState([]);
   const [formData, setFormData] = useState({
     place_name: '',
@@ -25,12 +26,72 @@ const AdminDashboard = () => {
   const [hotelImage, setHotelImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [searchTermPlace, setSearchTermPlace] = useState('');
+  const [searchTermHotel, setSearchTermHotel] = useState('');
+  const [searchTermUser, setSearchTermUser] = useState('');
+  const [usersList, setUsersList] = useState([]);
+  const [userCount, setUserCount] = useState(0);
+  const [currentPagePlace, setCurrentPagePlace] = useState(1);
+  const [currentPageHotel, setCurrentPageHotel] = useState(1);
+  const [currentPageUser, setCurrentPageUser] = useState(1);
+  const itemsPerPage = 15;
+
+  const filteredPlaces = places.filter(place =>
+    place.place_name.toLowerCase().includes(searchTermPlace.toLowerCase())
+  );
+
+  const allHotels = places.flatMap(place => 
+    (place.hotels || []).map(hotel => ({ ...hotel, place_name: place.place_name, place_id: place.id }))
+  );
+
+  const filteredHotels = allHotels.filter(hotel =>
+    hotel.hotel_name.toLowerCase().includes(searchTermHotel.toLowerCase()) ||
+    hotel.place_name.toLowerCase().includes(searchTermHotel.toLowerCase())
+  );
+
+  const filteredUsers = usersList.filter(u => 
+    u.role === 'user' && 
+    (u.name.toLowerCase().includes(searchTermUser.toLowerCase()) || 
+     u.user_id.toLowerCase().includes(searchTermUser.toLowerCase()) ||
+     u.mobile_number.includes(searchTermUser))
+  );
+
+  // Pagination calculations for places
+  const indexOfLastPlace = currentPagePlace * itemsPerPage;
+  const indexOfFirstPlace = indexOfLastPlace - itemsPerPage;
+  const currentPlaces = filteredPlaces.slice(indexOfFirstPlace, indexOfLastPlace);
+  const totalPagesPlaces = Math.ceil(filteredPlaces.length / itemsPerPage);
+
+  // Pagination calculations for hotels
+  const indexOfLastHotel = currentPageHotel * itemsPerPage;
+  const indexOfFirstHotel = indexOfLastHotel - itemsPerPage;
+  const currentHotels = filteredHotels.slice(indexOfFirstHotel, indexOfLastHotel);
+  const totalPagesHotels = Math.ceil(filteredHotels.length / itemsPerPage);
+
+  // Pagination calculations for users
+  const indexOfLastUser = currentPageUser * itemsPerPage;
+  const indexOfFirstUser = indexOfLastUser - itemsPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPagesUsers = Math.ceil(filteredUsers.length / itemsPerPage);
 
   const totalHotels = places.reduce((acc, place) => acc + (place.hotels?.length || 0), 0);
 
   useEffect(() => {
     fetchPlaces();
+    fetchUserCount();
   }, []);
+
+  useEffect(() => {
+    if (view === 'list') {
+      setCurrentPagePlace(1);
+    } else if (view === 'all-hotels') {
+      setCurrentPageHotel(1);
+    } else if (view === 'users') {
+      setCurrentPageUser(1);
+      setSearchTermUser(''); // Reset search term when navigating to users view
+      fetchUsers();
+    }
+  }, [view]);
 
   const fetchPlaces = async () => {
     try {
@@ -41,6 +102,35 @@ const AdminDashboard = () => {
       }
     } catch (err) {
       console.error("Error fetching places:", err);
+    }
+  };
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/register/');
+      const result = await response.json();
+      if (result.status) {
+        setUsersList(result.data);
+      }
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserCount = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/user-count/');
+      const data = await response.json();
+      // API returns user_count
+      const countValue = data.user_count !== undefined ? data.user_count : data.count;
+      if (response.ok && countValue !== undefined) {
+        setUserCount(countValue - 1); // Show total count - 1 as requested
+      }
+    } catch (err) {
+      console.error("Error fetching user count:", err);
     }
   };
 
@@ -210,9 +300,46 @@ const AdminDashboard = () => {
     }
   };
 
+  const renderPagination = (currentPage, totalPages, paginate) => {
+    if (totalPages <= 1) return null;
+
+    const pageNumbers = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', gap: '10px' }}>
+        <button
+          onClick={() => paginate(currentPage - 1)}
+          disabled={currentPage === 1}
+          style={{ padding: '8px 15px', borderRadius: '5px', border: '1px solid #ccc', background: 'white', cursor: 'pointer' }}
+        >
+          Previous
+        </button>
+        {pageNumbers.map(number => (
+          <button
+            key={number}
+            onClick={() => paginate(number)}
+            style={{ padding: '8px 15px', borderRadius: '5px', border: `1px solid ${currentPage === number ? '#2563eb' : '#ccc'}`, background: currentPage === number ? '#2563eb' : 'white', color: currentPage === number ? 'white' : '#333', cursor: 'pointer', fontWeight: currentPage === number ? 'bold' : 'normal' }}
+          >
+            {number}
+          </button>
+        ))}
+        <button
+          onClick={() => paginate(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          style={{ padding: '8px 15px', borderRadius: '5px', border: '1px solid #ccc', background: 'white', cursor: 'pointer' }}
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="dashboard-layout">
-      <DashboardTopNav variant="admin" />
+      <DashboardTopNav variant="admin" onViewChange={setView} />
 
       <div className="dashboard-body">
         <div className="role-dashboard">
@@ -266,6 +393,28 @@ const AdminDashboard = () => {
                     <div style={{ fontSize: '2.5rem' }}>🏨</div>
                   </div>
                   <p style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: '600' }}>View all registered hotels →</p>
+                </div>
+
+                {/* User Stat Card */}
+                <div 
+                  className="dash-card admin-card" 
+                  style={{
+                    padding: '30px', 
+                    textAlign: 'left', 
+                    borderLeft: '5px solid #6366f1',
+                    background: '#fff',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setView('users')}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Total Users</p>
+                      <h3 style={{ fontSize: '2.2rem', margin: '10px 0', color: '#1e293b' }}>{userCount}</h3>
+                    </div>
+                    <div style={{ fontSize: '2.5rem' }}>👥</div>
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: '#6366f1', fontWeight: '600' }}>Manage explorers →</p>
                 </div>
 
                 {/* Quick Action Card */}
@@ -441,10 +590,26 @@ const AdminDashboard = () => {
                 </div>
                 <button onClick={() => setView('summary')} style={{ padding: '8px 16px', borderRadius: '5px', border: '1px solid #ccc', cursor: 'pointer', fontWeight: '600' }}>Back to Stats</button>
               </div>
+              <div className="search-wrapper">
+                <span className="search-icon">🔍</span>
+                <input 
+                  type="text" 
+                  placeholder="Search by hotel name or location..." 
+                  className="admin-search-input"
+                  value={searchTermHotel}
+                  onChange={(e) => setSearchTermHotel(e.target.value)}
+                />
+                {searchTermHotel && (
+                  <p style={{ 
+                    fontSize: '0.85rem', color: '#64748b', marginTop: '10px', 
+                    marginLeft: '8px', fontWeight: '500', animation: 'fadeIn 0.3s ease' 
+                  }}>
+                    Showing {filteredHotels.length} results
+                  </p>
+                )}
+              </div>
               <div className="dashboard-cards">
-                {places.flatMap(place => 
-                  (place.hotels || []).map(hotel => ({ ...hotel, place_name: place.place_name, place_id: place.id }))
-                ).map((hotel) => (
+                {currentHotels.map((hotel) => (
                   <div key={hotel.id} className="dash-card admin-card animate-pop-in" style={{ padding: '0', overflow: 'hidden' }}>
                     <img 
                       src={hotel.hotel_image?.startsWith('http') ? hotel.hotel_image : `http://127.0.0.1:8000${hotel.hotel_image}`} 
@@ -481,7 +646,8 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 ))}
-                {totalHotels === 0 && <p style={{ textAlign: 'center', gridColumn: '1/-1', padding: '40px', color: '#64748b' }}>No hotels registered yet.</p>}
+                {filteredHotels.length === 0 && <p style={{ textAlign: 'center', gridColumn: '1/-1', padding: '40px', color: '#64748b' }}>{totalHotels === 0 ? 'No hotels registered yet.' : 'No hotels match your search.'}</p>}
+                {renderPagination(currentPageHotel, totalPagesHotels, setCurrentPageHotel)}
               </div>
             </div>
           )}
@@ -499,8 +665,26 @@ const AdminDashboard = () => {
                 </div>
                 <button onClick={() => setView('summary')} style={{ padding: '8px 16px', borderRadius: '5px', border: '1px solid #ccc', cursor: 'pointer', fontWeight: '600' }}>Back to Stats</button>
               </div>
+              <div className="search-wrapper">
+                <span className="search-icon">🔍</span>
+                <input 
+                  type="text" 
+                  placeholder="Search destinations..." 
+                  className="admin-search-input"
+                  value={searchTermPlace}
+                  onChange={(e) => setSearchTermPlace(e.target.value)}
+                />
+                {searchTermPlace && (
+                  <p style={{ 
+                    fontSize: '0.85rem', color: '#64748b', marginTop: '10px', 
+                    marginLeft: '8px', fontWeight: '500', animation: 'fadeIn 0.3s ease' 
+                  }}>
+                    Found {filteredPlaces.length} destinations
+                  </p>
+                )}
+              </div>
               <div className="dashboard-cards">
-                {places.map((place) => (
+                {currentPlaces.map((place) => (
                   <div key={place.id} className="dash-card admin-card animate-pop-in" style={{ padding: '0', overflow: 'hidden', borderLeft: 'none' }}>
                     <img 
                       src={place.image?.startsWith('http') ? place.image : `http://127.0.0.1:8000${place.image}`} 
@@ -547,7 +731,46 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 ))}
+                {filteredPlaces.length === 0 && <p style={{ textAlign: 'center', gridColumn: '1/-1', padding: '40px', color: '#64748b' }}>{places.length === 0 ? 'No destinations registered yet.' : 'No destinations match your search.'}</p>}
+                {renderPagination(currentPagePlace, totalPagesPlaces, setCurrentPagePlace)}
               </div>
+            </div>
+          )}
+
+          {view === 'users' && (
+            <div className="users-list-view">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <h2 style={{ margin: 0 }}>Registered Explorers</h2>
+                </div>
+                <button onClick={() => setView('summary')} style={{ padding: '8px 16px', borderRadius: '5px', border: '1px solid #ccc', cursor: 'pointer', fontWeight: '600' }}>Back to Stats</button>
+              </div>
+              
+              <div className="search-wrapper">
+                <span className="search-icon">🔍</span>
+                <input 
+                  type="text" 
+                  placeholder="Search explorers by name, ID or mobile..." 
+                  className="admin-search-input"
+                  value={searchTermUser}
+                  onChange={(e) => setSearchTermUser(e.target.value)}
+                />
+                {searchTermUser && (
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '10px', marginLeft: '8px', fontWeight: '500', animation: 'fadeIn 0.3s ease' }}>
+                    Found {filteredUsers.length} explorers
+                  </p>
+                )}
+              </div>
+
+              <UserTable users={currentUsers} />
+              
+              {filteredUsers.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                  {loading ? 'Loading users...' : 'No registered explorers match your search.'}
+                </div>
+              )}
+              
+              {renderPagination(currentPageUser, totalPagesUsers, setCurrentPageUser)}
             </div>
           )}
         </div>
