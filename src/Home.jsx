@@ -10,6 +10,7 @@ const Home = () => {
   const [userCount, setUserCount] = useState('...'); // Initialize with a placeholder
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [places, setPlaces] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [modalHotels, setModalHotels] = useState([]);
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -17,6 +18,7 @@ const Home = () => {
   const [activePlaceName, setActivePlaceName] = useState('');
   const [isAutoScrollActive, setIsAutoScrollActive] = useState(true);
   const scrollRef = useRef(null);
+  const feedbackScrollRef = useRef(null);
 
   // Auto-scroll logic for horizontal scroller
   useEffect(() => {
@@ -42,13 +44,42 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [places, isAutoScrollActive]);
 
+  // Auto-scroll logic for testimonials moving from right to left
+  useEffect(() => {
+    let interval;
+    const validFeedbacks = feedbacks.filter(f => f.is_valid);
+    if (validFeedbacks.length > 0 && feedbackScrollRef.current) {
+      const setTotalWidth = validFeedbacks.length * 370; // 350px card width + 20px gap
+
+      interval = setInterval(() => {
+        if (feedbackScrollRef.current) {
+          // Only auto-scroll if the container is not being hovered
+          if (!feedbackScrollRef.current.matches(':hover')) {
+            feedbackScrollRef.current.scrollLeft += 1;
+
+            // Seamless loop jump: once we've scrolled past the middle sets, 
+            // jump back by one set width to keep the runway long.
+            if (feedbackScrollRef.current.scrollLeft >= setTotalWidth * 10) {
+              feedbackScrollRef.current.scrollLeft -= setTotalWidth;
+            }
+          }
+        }
+      }, 35); // Speed of the feedback movement
+    }
+    return () => clearInterval(interval);
+  }, [feedbacks]);
+
   // Set initial scroll position to the middle to allow bidirectional infinite scrolling
   useEffect(() => {
     if (places.length > 0 && scrollRef.current) {
       // Start at the 8th set for maximum runway in both directions
       scrollRef.current.scrollLeft = places.length * 320 * 8;
     }
-  }, [places]);
+    const validFeedbacks = feedbacks.filter(f => f.is_valid);
+    if (validFeedbacks.length > 0 && feedbackScrollRef.current) {
+      feedbackScrollRef.current.scrollLeft = validFeedbacks.length * 370 * 8;
+    }
+  }, [places, feedbacks]);
 
   const handleManualScroll = (direction) => {
     if (scrollRef.current && places.length > 0) {
@@ -122,10 +153,23 @@ const Home = () => {
     }
   }, []);
 
+  const fetchFeedbacks = useCallback(async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/feedback/`);
+      const data = await response.json();
+      if (data.status) {
+        setFeedbacks(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching feedbacks:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchUserCount();
     fetchPlaces();
-  }, [fetchUserCount, fetchPlaces]);
+    fetchFeedbacks();
+  }, [fetchUserCount, fetchPlaces, fetchFeedbacks]);
 
   const sections = [
     { id: 'hero-section', name: 'Top' },
@@ -505,18 +549,33 @@ const Home = () => {
           <h2>Trusted by Adventure Seekers</h2>
           <p>Real stories from real trekkers</p>
         </div>
-        <div className="testimonials-grid">
-          <div className="testimonial-card">
-            <p className="testimonial-text">"This website saved my trek! The detailed web mapping and SOS features gave me confidence in remote areas. Highly recommended!"</p>
-            <p className="testimonial-author">- Sarah M., Himalayan Trekker</p>
-          </div>
-          <div className="testimonial-card">
-            <p className="testimonial-text">"Best tracking platform for group camping trips. We stay connected and safe with real-time browser-based location sharing."</p>
-            <p className="testimonial-author">- Raj K., Adventure Guide</p>
-          </div>
-          <div className="testimonial-card">
-            <p className="testimonial-text">"The detailed stats and elevation tracking help me plan better routes. Love this platform!"</p>
-            <p className="testimonial-author">- Priya D., Outdoor Enthusiast</p>
+        <div className="testimonials-scroll-wrapper" ref={feedbackScrollRef} style={{ overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <style>{`
+            .testimonials-scroll-wrapper::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
+          <div className="testimonials-grid" style={{ 
+            display: 'flex', 
+            gap: '20px', 
+            width: 'max-content',
+            padding: '20px 10px'
+          }}>
+            {feedbacks.filter(f => f.is_valid).length > 0 ? (
+              // Repeating the approved feedbacks multiple times to create a massive scrollable track for the marquee effect
+              [...Array(20)].flatMap(() => feedbacks.filter(f => f.is_valid)).map((item, index) => (
+                <div className="testimonial-card" key={`${item.id}-${index}`} style={{ width: '350px', flexShrink: 0 }}>
+                  <p className="testimonial-text">"{item.feedback}"</p>
+                  <p className="testimonial-author">- {item.user_name}</p>
+                </div>
+              ))
+            ) : (
+              <div style={{ width: '100vw', textAlign: 'center' }}>
+                <p style={{ color: '#64748b' }}>
+                  Discovering trekker stories...
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -531,7 +590,7 @@ const Home = () => {
 
       {/* Trust Section */}
       <footer id="footer-section" className="home-footer">
-        <p>&copy; 2024 Adventure Tracker. Explore Responsibly.</p>
+        <p>&copy; 2026 Adventure Tracker. Explore Responsibly.</p>
         <div className="footer-links">
           <Link to="/">Privacy Policy</Link>
           <Link to="/">Terms of Service</Link>

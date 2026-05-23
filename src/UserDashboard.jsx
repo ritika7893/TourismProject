@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext.jsx';
 import DashboardTopNav from './DashboardTopNav.jsx';
 import BookingForm from './BookingForm.jsx';
+import FeedbackForm from './FeedbackForm.jsx';
 import { BASE_URL } from './api/config.jsx';
 import './Dashboard.css';
 
 const UserDashboard = () => {
   const { user, accessToken } = useAuth();
-  const [view, setView] = useState('summary'); // summary, all-tracks, booking
+  const [view, setView] = useState('summary'); // summary, all-tracks, booking, feedback
   const [places, setPlaces] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [selectedPlace, setSelectedPlace] = useState(null);
@@ -182,6 +183,10 @@ const UserDashboard = () => {
                 fetchBookings();
               }}
             />
+          )}
+
+          {view === 'feedback' && (
+            <FeedbackForm onBack={() => setView('summary')} />
           )}
         </div>
       </div>

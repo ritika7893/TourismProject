@@ -3,12 +3,13 @@ import { useAuth } from './AuthContext.jsx';
 import DashboardTopNav from './DashboardTopNav.jsx';
 import UserTable from './UserTable.jsx';
 import AdminBookings from './AdminBookings.jsx';
+import AdminFeedbacks from './AdminFeedbacks.jsx';
 import { BASE_URL } from './api/config.jsx';
 import './Dashboard.css';
 
 const AdminDashboard = () => {
   const { accessToken } = useAuth();
-  const [view, setView] = useState('summary'); // summary, add, list, add-hotel, view-hotels, all-hotels, users, all-bookings
+  const [view, setView] = useState('summary'); // summary, add, list, add-hotel, view-hotels, all-hotels, users, all-bookings, all-feedbacks
   const [places, setPlaces] = useState([]);
   const [formData, setFormData] = useState({
     place_name: '',
@@ -37,6 +38,7 @@ const AdminDashboard = () => {
   const [searchTermUser, setSearchTermUser] = useState('');
   const [usersList, setUsersList] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
   const [userCount, setUserCount] = useState(0);
   const [currentPagePlace, setCurrentPagePlace] = useState(1);
   const [currentPageHotel, setCurrentPageHotel] = useState(1);
@@ -87,6 +89,7 @@ const AdminDashboard = () => {
     fetchPlaces();
     fetchUserCount();
     fetchBookings();
+    fetchFeedbacks();
   }, []);
 
   useEffect(() => {
@@ -100,6 +103,8 @@ const AdminDashboard = () => {
       fetchUsers();
     } else if (view === 'all-bookings') {
       fetchBookings();
+    } else if (view === 'all-feedbacks') {
+      fetchFeedbacks();
     }
   }, [view]);
 
@@ -128,6 +133,22 @@ const AdminDashboard = () => {
       }
     } catch (err) {
       console.error("Error fetching bookings:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFeedbacks = async () => {
+    // No Authentication header used for getting feedback as per request
+    setLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/feedback/`);
+      const result = await response.json();
+      if (result.status) {
+        setFeedbacks(result.data);
+      }
+    } catch (err) {
+      console.error("Error fetching feedbacks:", err);
     } finally {
       setLoading(false);
     }
@@ -507,6 +528,28 @@ const AdminDashboard = () => {
                   <p style={{ fontSize: '0.85rem', color: '#f59e0b', fontWeight: '600' }}>Review all reservations →</p>
                 </div>
 
+                {/* Feedbacks Stat Card */}
+                <div 
+                  className="dash-card admin-card" 
+                  style={{
+                    padding: '30px', 
+                    textAlign: 'left', 
+                    borderLeft: '5px solid #6366f1',
+                    background: '#fff',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setView('all-feedbacks')}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Explorer Stories</p>
+                      <h3 style={{ fontSize: '2.2rem', margin: '10px 0', color: '#1e293b' }}>{feedbacks.length}</h3>
+                    </div>
+                    <div style={{ fontSize: '2.5rem' }}>💬</div>
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: '#6366f1', fontWeight: '600' }}>Review all feedback →</p>
+                </div>
+
                 {/* Quick Action Card */}
                 <div 
                   className="dash-card admin-card" 
@@ -880,6 +923,15 @@ const AdminDashboard = () => {
               onBack={() => setView('summary')} 
               accessToken={accessToken}
               onRefresh={fetchBookings}
+            />
+          )}
+
+          {view === 'all-feedbacks' && (
+            <AdminFeedbacks 
+              feedbacks={feedbacks} 
+              onBack={() => setView('summary')} 
+              accessToken={accessToken}
+              onRefresh={fetchFeedbacks}
             />
           )}
         </div>
