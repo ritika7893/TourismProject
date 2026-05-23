@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from './AuthContext.jsx';
 import DashboardTopNav from './DashboardTopNav.jsx';
 import UserTable from './UserTable.jsx';
+import AdminBookings from './AdminBookings.jsx';
 import { BASE_URL } from './api/config.jsx';
 import './Dashboard.css';
 
 const AdminDashboard = () => {
-  const [view, setView] = useState('summary'); // summary, add, list, add-hotel, view-hotels, all-hotels, users
+  const { accessToken } = useAuth();
+  const [view, setView] = useState('summary'); // summary, add, list, add-hotel, view-hotels, all-hotels, users, all-bookings
   const [places, setPlaces] = useState([]);
   const [formData, setFormData] = useState({
     place_name: '',
     rating: '',
     one_person_price: '',
     number_of_days_stay: '',
-    description: ''
+    description: '',
+    booking_date: '',
+    booking_time: ''
   });
   const [image, setImage] = useState(null);
   
@@ -31,6 +36,7 @@ const AdminDashboard = () => {
   const [searchTermHotel, setSearchTermHotel] = useState('');
   const [searchTermUser, setSearchTermUser] = useState('');
   const [usersList, setUsersList] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [userCount, setUserCount] = useState(0);
   const [currentPagePlace, setCurrentPagePlace] = useState(1);
   const [currentPageHotel, setCurrentPageHotel] = useState(1);
@@ -80,6 +86,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchPlaces();
     fetchUserCount();
+    fetchBookings();
   }, []);
 
   useEffect(() => {
@@ -91,6 +98,8 @@ const AdminDashboard = () => {
       setCurrentPageUser(1);
       setSearchTermUser(''); // Reset search term when navigating to users view
       fetchUsers();
+    } else if (view === 'all-bookings') {
+      fetchBookings();
     }
   }, [view]);
 
@@ -106,10 +115,32 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchBookings = async () => {
+    if (!accessToken) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/booking/`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      const result = await response.json();
+      if (result.status) {
+        setBookings(result.data);
+      }
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/register/`);
+      const response = await fetch(`${BASE_URL}/register/`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
       const result = await response.json();
       if (result.status) {
         setUsersList(result.data);
@@ -158,7 +189,9 @@ const AdminDashboard = () => {
       rating: place.rating,
       one_person_price: place.one_person_price,
       number_of_days_stay: place.number_of_days_stay,
-      description: place.description
+      description: place.description,
+      booking_date: place.booking_date ? place.booking_date.split('T')[0] : '',
+      booking_time: place.booking_time ? (place.booking_time.includes('T') ? place.booking_time.split('T')[1].slice(0, 5) : place.booking_time.slice(0, 5)) : ''
     });
     setImage(null);
     setView('edit-place');
@@ -188,6 +221,16 @@ const AdminDashboard = () => {
     postData.append('one_person_price', formData.one_person_price);
     postData.append('number_of_days_stay', formData.number_of_days_stay);
     postData.append('description', formData.description);
+
+    // Ensure booking_date and booking_time are valid ISO strings for the backend DateTimeField
+    if (formData.booking_date) {
+      postData.append('booking_date', `${formData.booking_date}T00:00:00Z`);
+    }
+    if (formData.booking_time) {
+      // Placeholder date for the time field if the model uses DateTimeField for time
+      postData.append('booking_time', `2000-01-01T${formData.booking_time}:00Z`);
+    }
+
     if (image) postData.append('image', image);
 
     const isEdit = view === 'edit-place';
@@ -196,13 +239,24 @@ const AdminDashboard = () => {
     try {
       const response = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
         body: postData,
       });
       const result = await response.json();
 
       if (response.ok) {
         setMessage({ type: 'success', text: isEdit ? 'Destination updated successfully!' : 'Destination posted successfully!' });
-        setFormData({ place_name: '', rating: '', one_person_price: '', number_of_days_stay: '', description: '' });
+        setFormData({ 
+          place_name: '', 
+          rating: '', 
+          one_person_price: '', 
+          number_of_days_stay: '', 
+          description: '',
+          booking_date: '',
+          booking_time: ''
+        });
         setImage(null);
         fetchPlaces(); // Refresh data
         setTimeout(() => {
@@ -240,6 +294,9 @@ const AdminDashboard = () => {
     try {
       const response = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
         body: postData,
       });
 
@@ -266,7 +323,12 @@ const AdminDashboard = () => {
   const handleDeletePlace = async (id) => {
     if (!window.confirm("Are you sure you want to delete this destination? This will also remove all registered hotels.")) return;
     try {
-      const response = await fetch(`http://127.0.0.1:8000/places/${id}/`, { method: 'DELETE' });
+      const response = await fetch(`http://127.0.0.1:8000/places/${id}/`, { 
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
       if (response.ok) {
         setMessage({ type: 'success', text: 'Destination deleted successfully!' });
         fetchPlaces();
@@ -282,7 +344,12 @@ const AdminDashboard = () => {
   const handleDeleteHotel = async (hotelId) => {
     if (!window.confirm("Are you sure you want to delete this hotel?")) return;
     try {
-      const response = await fetch(`${BASE_URL}/hotels/${hotelId}/`, { method: 'DELETE' });
+      const response = await fetch(`${BASE_URL}/hotels/${hotelId}/`, { 
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
       if (response.ok) {
         setMessage({ type: 'success', text: 'Hotel deleted successfully!' });
         const res = await fetch(`${BASE_URL}/places/`);
@@ -418,6 +485,28 @@ const AdminDashboard = () => {
                   <p style={{ fontSize: '0.85rem', color: '#6366f1', fontWeight: '600' }}>Manage explorers →</p>
                 </div>
 
+                {/* Bookings Stat Card */}
+                <div 
+                  className="dash-card admin-card" 
+                  style={{
+                    padding: '30px', 
+                    textAlign: 'left', 
+                    borderLeft: '5px solid #f59e0b',
+                    background: '#fff',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setView('all-bookings')}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Total Bookings</p>
+                      <h3 style={{ fontSize: '2.2rem', margin: '10px 0', color: '#1e293b' }}>{bookings.length}</h3>
+                    </div>
+                    <div style={{ fontSize: '2.5rem' }}>🎟️</div>
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: '#f59e0b', fontWeight: '600' }}>Review all reservations →</p>
+                </div>
+
                 {/* Quick Action Card */}
                 <div 
                   className="dash-card admin-card" 
@@ -481,6 +570,8 @@ const AdminDashboard = () => {
                     <div className="form-group"><label style={{ fontWeight: '600', marginBottom: '5px', display: 'block' }}>Rating</label><input style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd', width: '100%' }} type="number" name="rating" step="0.1" min="0" max="5" value={formData.rating} onChange={handleChange} required /></div>
                     <div className="form-group"><label style={{ fontWeight: '600', marginBottom: '5px', display: 'block' }}>Price (₹)</label><input style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd', width: '100%' }} type="number" name="one_person_price" value={formData.one_person_price} onChange={handleChange} required /></div>
                     <div className="form-group"><label style={{ fontWeight: '600', marginBottom: '5px', display: 'block' }}>Duration (Days)</label><input style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd', width: '100%' }} type="number" name="number_of_days_stay" value={formData.number_of_days_stay} onChange={handleChange} required /></div>
+                    <div className="form-group"><label style={{ fontWeight: '600', marginBottom: '5px', display: 'block' }}>Booking Date</label><input style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd', width: '100%' }} type="date" name="booking_date" value={formData.booking_date} onChange={handleChange} required /></div>
+                    <div className="form-group"><label style={{ fontWeight: '600', marginBottom: '5px', display: 'block' }}>Booking Time</label><input style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd', width: '100%' }} type="time" name="booking_time" value={formData.booking_time} onChange={handleChange} required /></div>
                   </div>
                   <div className="form-group" style={{ marginBottom: '15px' }}>
                     <label style={{ fontWeight: '600', marginBottom: '5px', display: 'block' }}>Description</label>
@@ -701,6 +792,13 @@ const AdminDashboard = () => {
                       </div>
                       <p style={{ margin: '5px 0', fontSize: '0.9rem' }}><strong>Price:</strong> ₹{place.one_person_price}</p>
                       <p style={{ margin: '5px 0', fontSize: '0.9rem' }}><strong>Duration:</strong> {place.number_of_days_stay} Days</p>
+                      <p style={{ margin: '5px 0', fontSize: '0.9rem', color: '#2563eb' }}>
+                        <strong>Next Trek:</strong> {place.booking_date ? new Date(place.booking_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'TBD'} 
+                        {' @ '} 
+                        {place.booking_time ? (
+                          place.booking_time.includes('T') ? new Date(place.booking_time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : place.booking_time.slice(0, 5)
+                        ) : 'TBD'}
+                      </p>
                       <p style={{ color: '#666', fontSize: '0.85rem', marginTop: '10px', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {place.description}
                       </p>
@@ -773,6 +871,16 @@ const AdminDashboard = () => {
               
               {renderPagination(currentPageUser, totalPagesUsers, setCurrentPageUser)}
             </div>
+          )}
+
+          {view === 'all-bookings' && (
+            <AdminBookings 
+              bookings={bookings} 
+              places={places} 
+              onBack={() => setView('summary')} 
+              accessToken={accessToken}
+              onRefresh={fetchBookings}
+            />
           )}
         </div>
       </div>

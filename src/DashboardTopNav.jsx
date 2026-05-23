@@ -39,18 +39,20 @@ const DashboardTopNav = ({ variant = 'user', onViewChange }) => {
         { label: 'Trail Map', icon: '🗺️', href: 'list'       },
         { label: 'Lodges',    icon: '🏠', href: 'all-hotels' },
         { label: 'Explorers', icon: '👥', href: 'users'      },
+        { label: 'Bookings',  icon: '🎟️', href: 'all-bookings' },
       ]
     : [
-        { label: 'My Treks',     icon: '🎒', href: '#adventures' },
-        { label: 'Gear & Stats', icon: '📊', href: '#stats'      },
-        { label: 'Expedition Hub', icon: '⚙️', href: '#actions'    },
+        { label: 'My Treks',     icon: '🎒', href: 'summary'     },
+        { label: 'All Tracks',   icon: '🗺️', href: 'all-tracks'  },
+        { label: 'Gear & Stats', icon: '📊', href: 'stats'       },
+        { label: 'Expedition Hub', icon: '⚙️', href: 'actions'     },
       ];
 
   /* Close drawer after navigation */
   const handleLinkClick = (e, href) => {
     e.preventDefault();
     setDrawerOpen(false);
-    if (onViewChange && isAdmin) {
+    if (onViewChange) {
       onViewChange(href);
     }
   };

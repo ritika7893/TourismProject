@@ -280,6 +280,13 @@ const Home = () => {
                 <div className="adventure-content">
                   <h3>{place.place_name}</h3>
                   <p className="difficulty">Stay: {place.number_of_days_stay} Days</p>
+                  <p style={{ fontSize: '0.8rem', color: '#047857', fontWeight: 'bold', margin: '2px 0' }}>
+                    📅 {place.booking_date ? new Date(place.booking_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'TBD'} 
+                    {' @ '} 
+                    {place.booking_time ? (
+                      place.booking_time.includes('T') ? new Date(place.booking_time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : place.booking_time.slice(0, 5)
+                    ) : 'TBD'}
+                  </p>
                   <p style={{ display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{place.description}</p>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
                     <span className="rating">⭐ {place.rating}/5</span>
